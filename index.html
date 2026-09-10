@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f5ef" />
+  <meta name="description" content="A voxel weathering playground. Explore how structures become ruins across centuries, then export the story as JSON." />
+  <title>Ruin Lab — A study in time</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%233d5845'/%3E%3Cpath d='M9 15l11-6 11 6-11 6zM9 21l11 6 11-6M9 27l11 6 11-6' stroke='%23eaf0d9' fill='none' stroke-width='2'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="./" aria-label="Ruin Lab home"><span class="brand-mark" data-icon="layers"></span><span>ruin<span class="brand-light">lab</span><i></i></span></a>
+    <div class="header-divider"></div><span class="header-caption">A study in time.</span>
+    <span class="project-badge"><span class="status-dot"></span> VOXEL WEATHERING SANDBOX</span>
+    <div class="header-actions"><button id="guide-button" class="button ghost" data-icon-before="book">Field notes</button><button id="export-button" class="button dark" data-icon-before="download">Export timelapse <span class="file-type">JSON</span></button></div>
+  </header>
+  <div class="workspace">
+    <aside class="library-panel">
+      <div class="eyebrow">THE COLLECTION <span>01—04</span></div>
+      <h1>Every ruin starts<br>with a structure.</h1>
+      <p class="intro">Choose a beginning.<br>Let the elements do the rest.</p>
+      <div class="section-heading"><h2>Example structures</h2><span id="library-count">04</span></div>
+      <div id="structure-list" class="structure-list" aria-label="Example structures"></div>
+      <button id="import-button" class="import-button" data-icon-before="plus">Import your own <span>JSON</span></button>
+      <input id="file-input" type="file" accept=".json,application/json" hidden />
+      <button id="url-button" class="text-button" data-icon-before="link">Load from a URL</button>
+      <div class="library-footer"><span class="small-cube" data-icon="cube"></span><div><strong>Small blocks. Long histories.</strong><p>Local simulation. Open format.<br>Your structures stay in your browser.*</p><small>*URL imports contact the source server.</small></div></div>
+      <div class="version-label"><span>RUIN LAB / EXPERIMENT 001</span><span>v1.0</span></div>
+    </aside>
+
+    <main class="main-panel">
+      <div class="page-heading"><div><div class="eyebrow">THE OBSERVATORY</div><h2>Time leaves a trace<span>.</span></h2></div><span class="local-badge" data-icon-before="cpu">Runs in your browser</span></div>
+      <section class="viewer-card" aria-label="Interactive 3D voxel structure">
+        <div id="viewer"></div>
+        <div class="viewer-heading"><span class="viewer-label">SPECIMEN <span id="specimen-number">01</span></span><h3 id="structure-name">Coastal watchtower</h3><p id="structure-period">12th century · Military</p></div>
+        <div class="view-status"><span class="status-dot"></span><span id="view-status">Original structure</span></div>
+        <div class="viewer-top-tools"><button id="grid-button" class="icon-button active" title="Toggle ground grid" aria-label="Toggle ground grid" aria-pressed="true" data-icon="grid"></button><button id="snapshot-button" class="icon-button" title="Save viewport as PNG" aria-label="Save viewport as PNG" data-icon="camera"></button><button id="fullscreen-button" class="icon-button" title="Fullscreen viewer" aria-label="Fullscreen viewer" data-icon="expand"></button></div>
+        <div class="viewer-scale"><span id="dimensions">28 × 27 × 28</span><span>VOXEL GRID</span></div>
+        <div class="viewer-bottom"><div class="compass"><span>N</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5L26 28 20 24 14 28Z" fill="#566350"/><path d="M20 5v19l6 4z" fill="#a3ab99"/><circle cx="20" cy="20" r="17" fill="none" stroke="#a4ac9b" stroke-width=".6"/></svg></div><div class="view-switch"><button id="orbit-button" class="active" data-icon-before="orbit">Orbit</button><button id="top-button" data-icon-before="top">Top</button><span></span><button id="fit-button" title="Reset camera" aria-label="Reset camera" data-icon="focus"></button></div><span class="orbit-hint">Drag to orbit <i>·</i> Scroll to zoom</span></div>
+        <div id="viewer-loading" class="viewer-loading"><span class="spinner"></span><p>Unpacking the past…</p></div>
+      </section>
+      <section class="timeline-panel" aria-label="Simulation timeline">
+        <div class="timeline-heading"><div class="timeline-title" data-icon-before="clock"><h2>The passage of time</h2><span id="frame-count">12 KEYFRAMES</span></div><div class="timeline-year"><span id="current-year">0</span><small>YEARS</small></div></div>
+        <div class="timeline-track-row"><button id="play-button" class="play-button" title="Play timelapse" aria-label="Play timelapse" data-icon="play"></button><div class="timeline-track"><input id="timeline" type="range" min="0" max="12" value="0" step="1" aria-label="Timelapse frame" /><div id="timeline-ticks" class="timeline-ticks"></div></div><button id="restart-button" class="icon-button" title="Back to the beginning" aria-label="Back to the beginning" data-icon="rewind"></button></div>
+        <div class="timeline-footer"><span class="timeline-phase"><span class="status-dot"></span><span id="phase-label">Before the elements</span></span><div><span id="patch-count">No changes yet</span><span class="dot-divider">·</span><span id="step-label">100 years / step</span><select id="playback-speed" aria-label="Playback speed"><option value="1200">1× speed</option><option value="600">2× speed</option><option value="2400">½× speed</option></select></div></div>
+      </section>
+      <div class="main-footer"><span data-icon-before="info">A procedural interpretation, not a prediction.</span><button id="export-structure" class="text-button" data-icon-before="download">Export current structure</button></div>
+    </main>
+
+    <aside class="settings-panel">
+      <div class="settings-title"><div><span class="eyebrow">THE ELEMENTS</span><h2>Shape the years</h2></div><button id="reset-settings" class="icon-button" title="Reset simulation settings" aria-label="Reset simulation settings" data-icon="reset"></button></div>
+      <div class="preset-row"><label for="climate">Environment</label><select id="climate"><option value="temperate">Temperate coast</option><option value="arid">Arid highlands</option><option value="forest">Wet woodland</option><option value="custom">Custom conditions</option></select></div>
+      <div class="pass-list">
+        <div class="pass"><div class="pass-heading"><span class="pass-number">01</span><span class="pass-icon" data-icon="wind"></span><label for="exposure">Exposure & decay</label><input id="exposure" class="switch" type="checkbox" checked /></div><p>Sun, wind, and the slow loss of stone.</p><div class="range-label"><label for="weathering">Weathering</label><output id="weathering-value">1.0×</output></div><input id="weathering" type="range" min="0" max="2" step="0.1" value="1" /><div class="range-ends"><span>Gentle</span><span>Severe</span></div></div>
+        <div class="pass"><div class="pass-heading"><span class="pass-number">02</span><span class="pass-icon" data-icon="collapse"></span><label for="collapse">Structural collapse</label><input id="collapse" class="switch" type="checkbox" checked /></div><p>Lost support. Fallen spans. Rubble.</p><div class="inline-setting"><label for="span">Max. unsupported span</label><select id="span"><option value="1">1 voxel</option><option value="2">2 voxels</option><option value="3" selected>3 voxels</option><option value="4">4 voxels</option><option value="5">5 voxels</option><option value="6">6 voxels</option></select></div></div>
+        <div class="pass"><div class="pass-heading"><span class="pass-number">03</span><span class="pass-icon" data-icon="sediment"></span><label for="sediment">Burial & sediment</label><input id="sediment" class="switch" type="checkbox" checked /></div><p>The ground rises. The past sinks.</p><div class="range-label"><label for="sedimentRate">Accumulation</label><output id="sedimentRate-value">Low</output></div><input id="sedimentRate" type="range" min="0" max="1.5" step="0.05" value="0.45" /></div>
+        <div class="pass"><div class="pass-heading"><span class="pass-number">04</span><span class="pass-icon" data-icon="leaf"></span><label for="overgrowth">Overgrowth</label><input id="overgrowth" class="switch" type="checkbox" checked /></div><p>Life finds a way into the cracks.</p><div class="range-label"><label for="growthRate">Vegetation</label><output id="growthRate-value">Balanced</output></div><input id="growthRate" type="range" min="0" max="1.5" step="0.05" value="0.65" /></div>
+        <div class="pass water-pass"><div class="pass-heading"><span class="pass-number">05</span><span class="pass-icon" data-icon="droplet"></span><label for="water">Water erosion <span class="beta">EXTRA</span></label><input id="water" class="switch" type="checkbox" /></div><p>Rainfall traces the path downhill.</p><div id="rainfall-control" hidden><div class="range-label"><label for="rainfall">Rainfall</label><output id="rainfall-value">0.6×</output></div><input id="rainfall" type="range" min="0" max="1.5" step="0.1" value="0.6" /></div></div>
+      </div>
+      <div class="simulation-config"><div class="config-row"><label for="steps">Keyframes</label><select id="steps"><option value="6">6 frames</option><option value="12" selected>12 frames</option><option value="20">20 frames</option><option value="30">30 frames</option></select></div><div class="config-row"><label for="stepYears">Years per step</label><select id="stepYears"><option value="25">25 years</option><option value="50">50 years</option><option value="100" selected>100 years</option><option value="250">250 years</option><option value="500">500 years</option></select></div><div class="config-row"><label for="wind">Prevailing wind</label><select id="wind"><option value="NW">Northwest ↘</option><option value="NE">Northeast ↙</option><option value="SW">Southwest ↗</option><option value="SE">Southeast ↖</option></select></div><div class="config-row"><label for="seed">Random seed <span title="Same seed + same settings = same history" data-icon="info"></span></label><div class="seed-control"><input id="seed" type="text" value="1847" maxlength="32" aria-label="Random seed" /><button id="randomize-seed" title="Randomize seed" aria-label="Randomize seed" data-icon="shuffle"></button></div></div></div>
+      <button id="simulate-button" class="button simulate-button" data-icon-before="sparkles">Simulate the years <span data-icon="arrow"></span></button>
+      <p id="simulation-summary" class="simulation-summary">12 centuries. One possible future.</p>
+    </aside>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="url-dialog"><form id="url-form"><div class="dialog-heading"><span class="eyebrow">BRING YOUR OWN HISTORY</span><button type="button" class="icon-button close-dialog" aria-label="Close" data-icon="close"></button></div><h2>A structure from anywhere.</h2><p>Load a voxel structure or timelapse from a public JSON URL. The source must allow cross-origin requests (CORS).</p><label class="field-label" for="json-url">JSON URL</label><input id="json-url" type="url" placeholder="https://example.com/watchtower.json" required /><p id="url-error" class="error-text" role="alert"></p><button id="url-submit" class="button dark" type="submit" data-icon-before="link">Load structure</button></form></dialog>
+  <dialog id="guide-dialog"><div class="dialog-heading"><span class="eyebrow">FIELD NOTES / 001</span><button class="icon-button close-dialog" aria-label="Close" data-icon="close"></button></div><h2>Nothing stays standing forever.</h2><p>Ruin Lab is a small experiment in how time changes architecture. Pick a structure, tune the elements, and run a possible history.</p><div class="guide-steps"><div><b>01</b><p><strong>Set the conditions</strong>Five independent passes run each step: exposure → rain (optional) → collapse → sediment → overgrowth.</p></div><div><b>02</b><p><strong>Travel through time</strong>Drag the timeline or press play. Orbit with your mouse, pan with a right-drag, and scroll to get closer.</p></div><div><b>03</b><p><strong>Take the history with you</strong>Export a timelapse with the original structure and incremental voxel patches. Export the current structure for a standalone snapshot. Both can be imported here.</p></div></div><h3>An open, simple format</h3><pre>{ "version": 1, "size": [12, 8, 10],
+  "materials": {
+    "0": { "name": "air" },
+    "1": { "name": "stone", "color": "#8a8a85",
+           "durability": 1, "decays_to": "0" }
+  },
+  "voxels": [[0, 0, 0, 1]] }</pre><p class="guide-footnote">Y is up. Material 0 is air. Each timelapse frame has <code>t</code> (years) and <code>set</code> ([x, y, z, material] updates). A fixed seed gives repeatable results. These are artistic approximations, not engineering forecasts. Sediment needs a ground material; generated plants are included in exports.</p><button class="button dark close-dialog">Back to the observatory <span data-icon="arrow"></span></button></dialog>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

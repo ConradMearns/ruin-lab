@@ -1,0 +1,72 @@
+{
+  "structures": [
+    {
+      "id": "coastal-watchtower",
+      "name": "Coastal watchtower",
+      "period": "12th century · Military",
+      "description": "A limestone sentinel, timber floors and a sheltered lean-to. Built to outlast its keepers.",
+      "file": "examples/coastal-watchtower.json",
+      "tags": [
+        "Stone",
+        "Timber"
+      ],
+      "dimensions": [
+        28,
+        27,
+        28
+      ],
+      "voxelCount": 2600
+    },
+    {
+      "id": "hillside-chapel",
+      "name": "Hillside chapel",
+      "period": "13th century · Sacred",
+      "description": "A thatched nave and a stone bell tower. Watch the roof give way to an open sky.",
+      "file": "examples/hillside-chapel.json",
+      "tags": [
+        "Stone",
+        "Thatch"
+      ],
+      "dimensions": [
+        30,
+        25,
+        32
+      ],
+      "voxelCount": 2822
+    },
+    {
+      "id": "courtyard-villa",
+      "name": "Courtyard villa",
+      "period": "2nd century · Domestic",
+      "description": "A colonnaded courtyard wrapped in timber galleries. Long spans, quiet gardens.",
+      "file": "examples/courtyard-villa.json",
+      "tags": [
+        "Columns",
+        "Timber"
+      ],
+      "dimensions": [
+        32,
+        18,
+        30
+      ],
+      "voxelCount": 2590
+    },
+    {
+      "id": "forest-cottage",
+      "name": "Forest cottage",
+      "period": "15th century · Vernacular",
+      "description": "Timber walls on a low stone footing, beneath a steep thatched roof.",
+      "file": "examples/forest-cottage.json",
+      "tags": [
+        "Timber",
+        "Thatch"
+      ],
+      "dimensions": [
+        26,
+        19,
+        26
+      ],
+      "voxelCount": 1531
+    }
+  ]
+}
