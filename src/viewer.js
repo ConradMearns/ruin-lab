@@ -79,13 +79,15 @@ export class VoxelViewer {
     const dummy = new THREE.Object3D(); const color = new THREE.Color();
     for (const [id, list] of batches) {
       const mat = structure.materials[id];
-      const mesh = new THREE.InstancedMesh(this.geometry, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0 }), list.length);
-      mesh.castShadow = true; mesh.receiveShadow = true;
+      const opacity = mat.previewOpacity ?? 1;
+      const mesh = new THREE.InstancedMesh(this.geometry, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0, transparent: opacity < 1, opacity, depthWrite: opacity >= 1 }), list.length);
+      mesh.castShadow = opacity >= 1; mesh.receiveShadow = opacity >= 1;
       const baseColor = new THREE.Color(mat.color || '#8a8a85');
       for (let i = 0; i < list.length; i++) {
         const [x, y, z] = list[i];
         const hash = ((Math.imul(x + 1, 73856093) ^ Math.imul(y + 1, 19349663) ^ Math.imul(z + 1, 83492791)) >>> 0) / 4294967295;
         let sx = 0.985, sy = 0.985, sz = 0.985, oy = 0;
+        if (mat.previewScale) { sx = mat.previewScale; sy = mat.previewScale; sz = mat.previewScale; }
         if (mat.loose) { sx = 0.7 + hash * 0.25; sy = 0.55 + hash * 0.3; sz = 0.7 + (1 - hash) * 0.2; oy = (sy - 1) / 2; }
         if (mat.organic) {
           if (mat.render === 'moss') { sx = 0.87; sy = 0.18; sz = 0.87; }
@@ -118,6 +120,13 @@ export class VoxelViewer {
     Object.assign(this.sun.shadow.camera, { left: -radius, right: radius, top: radius, bottom: -radius, far: radius * 6 });
     this.sun.position.set(-radius, radius * 2, radius); this.sun.target.position.set(0, highest / 3, 0); this.sun.shadow.camera.updateProjectionMatrix();
     this.resize();
+  }
+  /** Presentation only: Y=0 is just below the bottom voxel course. */
+  setFloorHeight(height = 0) {
+    if (!Number.isFinite(height)) return;
+    this.ground.position.y = height - 0.56;
+    this.grid.position.y = height - 0.54;
+    this.invalidate();
   }
   setGrid(visible) { this.grid.visible = visible; this.invalidate(); }
   async snapshot() {

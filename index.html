@@ -13,7 +13,7 @@
     <a class="brand" href="./" aria-label="Ruin Lab home"><span class="brand-mark" data-icon="layers"></span><span>ruin<span class="brand-light">lab</span><i></i></span></a>
     <div class="header-divider"></div><span class="header-caption">A study in time.</span>
     <span class="project-badge"><span class="status-dot"></span> VOXEL WEATHERING SANDBOX</span>
-    <div class="header-actions"><button id="guide-button" class="button ghost" data-icon-before="book">Field notes</button><button id="export-button" class="button dark" data-icon-before="download">Export timelapse <span class="file-type">JSON</span></button></div>
+    <div class="header-actions"><a class="button ghost extraction-link" href="./extraction.html">Extraction studio <span class="file-type">VS</span></a><button id="guide-button" class="button ghost" data-icon-before="book">Field notes</button><button id="export-button" class="button dark" data-icon-before="download">Export timelapse <span class="file-type">JSON</span></button></div>
   </header>
   <div class="workspace">
     <aside class="library-panel">
@@ -40,6 +40,13 @@
         <div class="viewer-bottom"><div class="compass"><span>N</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5L26 28 20 24 14 28Z" fill="#566350"/><path d="M20 5v19l6 4z" fill="#a3ab99"/><circle cx="20" cy="20" r="17" fill="none" stroke="#a4ac9b" stroke-width=".6"/></svg></div><div class="view-switch"><button id="orbit-button" class="active" data-icon-before="orbit">Orbit</button><button id="top-button" data-icon-before="top">Top</button><span></span><button id="fit-button" title="Reset camera" aria-label="Reset camera" data-icon="focus"></button></div><span class="orbit-hint">Drag to orbit <i>·</i> Scroll to zoom</span></div>
         <div id="viewer-loading" class="viewer-loading"><span class="spinner"></span><p>Unpacking the past…</p></div>
       </section>
+      <div class="floor-controls" role="group" aria-label="Scene floor height">
+        <label for="floor-height">Scene floor</label>
+        <input id="floor-height" type="range" min="-28" max="27" step="1" value="0" aria-describedby="floor-hint" />
+        <output id="floor-height-value" for="floor-height">Y = 0</output>
+        <button id="floor-reset" class="text-button" title="Reset floor to Y = 0">Reset</button>
+        <span id="floor-hint">View only · voxel data unchanged</span>
+      </div>
       <section class="timeline-panel" aria-label="Simulation timeline">
         <div class="timeline-heading"><div class="timeline-title" data-icon-before="clock"><h2>The passage of time</h2><span id="frame-count">12 KEYFRAMES</span></div><div class="timeline-year"><span id="current-year">0</span><small>YEARS</small></div></div>
         <div class="timeline-track-row"><button id="play-button" class="play-button" title="Play timelapse" aria-label="Play timelapse" data-icon="play"></button><div class="timeline-track"><input id="timeline" type="range" min="0" max="12" value="0" step="1" aria-label="Timelapse frame" /><div id="timeline-ticks" class="timeline-ticks"></div></div><button id="restart-button" class="icon-button" title="Back to the beginning" aria-label="Back to the beginning" data-icon="rewind"></button></div>
@@ -50,6 +57,7 @@
 
     <aside class="settings-panel">
       <div class="settings-title"><div><span class="eyebrow">THE ELEMENTS</span><h2>Shape the years</h2></div><button id="reset-settings" class="icon-button" title="Reset simulation settings" aria-label="Reset simulation settings" data-icon="reset"></button></div>
+      <button id="materials-button" class="button material-editor-button" data-icon-before="layers" disabled>Edit material durability</button>
       <div class="preset-row"><label for="climate">Environment</label><select id="climate"><option value="temperate">Temperate coast</option><option value="arid">Arid highlands</option><option value="forest">Wet woodland</option><option value="custom">Custom conditions</option></select></div>
       <div class="pass-list">
         <div class="pass"><div class="pass-heading"><span class="pass-number">01</span><span class="pass-icon" data-icon="wind"></span><label for="exposure">Exposure & decay</label><input id="exposure" class="switch" type="checkbox" checked /></div><p>Sun, wind, and the slow loss of stone.</p><div class="range-label"><label for="weathering">Weathering</label><output id="weathering-value">1.0×</output></div><input id="weathering" type="range" min="0" max="2" step="0.1" value="1" /><div class="range-ends"><span>Gentle</span><span>Severe</span></div></div>

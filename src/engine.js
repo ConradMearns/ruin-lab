@@ -27,10 +27,10 @@ export function simulate(input, options = {}, onProgress = () => {}) {
   const footprint = [];
   for (const [x, y, z, m] of structure.voxels) {
     grid[key(x, y, z)] = m;
-    if (!mats[m].ground && !mats[m].organic) { original.push(key(x, y, z)); footprint.push([x, z]); }
+    if (!mats[m].ground && !mats[m].fixed && !mats[m].organic) { original.push(key(x, y, z)); footprint.push([x, z]); }
   }
   const findMat = predicate => Number(Object.keys(mats).find(id => id !== '0' && predicate(mats[id])) || 0);
-  const rubble = findMat(m => m.loose);
+  const rubble = findMat(m => m.loose && !m.fixed);
   const soil = findMat(m => m.ground);
   const addMaterial = m => {
     const existing = findMat(n => n.name === m.name);
@@ -69,7 +69,7 @@ export function simulate(input, options = {}, onProgress = () => {}) {
     const heights = heightfield();
     // 1. Exposure: sheltered blocks age much more slowly; height and wind favour roof loss.
     if (s.exposure) for (let k = 0; k < grid.length; k++) {
-      const m = before[k]; if (!m || mats[m].ground) continue;
+      const m = before[k]; if (!m || mats[m].ground || mats[m].fixed) continue;
       const [x, y, z] = xyz(k); let faces = 0, wind = 0;
       for (const [dx, dz] of dirs) {
         if (!inside(x + dx, y, z + dz) || !before[key(x + dx, y, z + dz)]) {
@@ -94,7 +94,7 @@ export function simulate(input, options = {}, onProgress = () => {}) {
         for (let hop = 0; hop < 5; hop++) {
           const y = heights[x + z * W]; if (y < 0) break;
           const k = key(x, y, z), m = grid[k];
-          if (m && !mats[m].ground && !mats[m].organic && random() < 0.15 / (mats[m].durability ?? 1)) {
+          if (m && !mats[m].ground && !mats[m].fixed && !mats[m].organic && random() < 0.15 / (mats[m].durability ?? 1)) {
             const next = advance(m); grid[k] = next; if (next !== m) stats.weathered++;
           }
           let dest = null, low = y;
@@ -111,7 +111,8 @@ export function simulate(input, options = {}, onProgress = () => {}) {
         const queue = [];
         for (let c = 0; c < layer; c++) {
           const k = c + y * layer, m = grid[k]; if (!m || mats[m].organic) continue;
-          if (y === 0 || mats[m].ground || stable[k - layer]) {
+          if (mats[m].fluid) continue;
+          if (y === 0 || mats[m].ground || mats[m].fixed || stable[k - layer]) {
             stable[k] = 1; spanLeft[k] = mats[m].loose ? 0 : (mats[m].span ?? s.span); queue.push(k);
           }
         }
@@ -121,7 +122,7 @@ export function simulate(input, options = {}, onProgress = () => {}) {
           for (const [dx, dz] of dirs) {
             if (!inside(x + dx, y, z + dz)) continue;
             const n = key(x + dx, y, z + dz), m = grid[n];
-            if (!m || mats[m].organic || mats[m].loose) continue;
+            if (!m || mats[m].organic || mats[m].loose || mats[m].fluid) continue;
             const remaining = Math.min(spanLeft[k] - 1, mats[m].span ?? s.span);
             if (remaining > spanLeft[n]) { stable[n] = 1; spanLeft[n] = remaining; queue.push(n); }
           }
@@ -130,14 +131,14 @@ export function simulate(input, options = {}, onProgress = () => {}) {
       // Drop connected unsupported fragments as rigid clusters, then let loose debris settle.
       const seen = new Uint8Array(grid.length);
       for (let k = 0; k < grid.length; k++) {
-        if (!grid[k] || stable[k] || seen[k] || mats[grid[k]].organic) continue;
+        if (!grid[k] || stable[k] || seen[k] || mats[grid[k]].organic || mats[grid[k]].fixed) continue;
         const cluster = [k]; seen[k] = 1;
         for (let i = 0; i < cluster.length; i++) {
           const [x, y, z] = xyz(cluster[i]);
           for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) {
             if (!inside(x + dx, y + dy, z + dz)) continue;
             const n = key(x + dx, y + dy, z + dz);
-            if (grid[n] && !stable[n] && !seen[n] && !mats[grid[n]].organic) { seen[n] = 1; cluster.push(n); }
+            if (grid[n] && !stable[n] && !seen[n] && !mats[grid[n]].organic && !mats[grid[n]].fixed) { seen[n] = 1; cluster.push(n); }
           }
         }
         const contents = cluster.map(n => [n, grid[n]]);
@@ -150,12 +151,14 @@ export function simulate(input, options = {}, onProgress = () => {}) {
         }
         for (const [n, m] of contents) {
           const target = n - fall * layer;
-          grid[target] = fall > 1 && rubble && !/wood|thatch/i.test(mats[m].name) && random() < 0.8 ? rubble : m;
+          const next = advance(m);
+          const impactRubble = mats[next]?.loose && !mats[next]?.fixed ? next : rubble;
+          grid[target] = fall > 1 && impactRubble && !/wood|thatch/i.test(mats[m].name) && random() < 0.8 ? impactRubble : m;
           if (fall) stats.collapsed++;
         }
       }
       for (let y = 1; y < H; y++) for (let z = 0; z < D; z++) for (let x = 0; x < W; x++) {
-        const k = key(x, y, z), m = grid[k]; if (!m || !mats[m].loose) continue;
+        const k = key(x, y, z), m = grid[k]; if (!m || !mats[m].loose || mats[m].fixed) continue;
         let tx = x, tz = z, ty = y;
         while (ty > 0 && !grid[key(tx, ty - 1, tz)]) ty--;
         // A little talus spreading around the foot of the wall.
@@ -174,7 +177,7 @@ export function simulate(input, options = {}, onProgress = () => {}) {
         const target = Math.min(H - 1, initialGround[c] + step * timeScale * s.sedimentRate * 0.45 * bump);
         for (let y = initialGround[c] + 1; y <= Math.ceil(target); y++) {
           const k = key(x, y, z);
-          if (grid[k] && !mats[grid[k]].organic) continue;
+          if (grid[k] && (mats[grid[k]].fixed || !mats[grid[k]].organic)) continue;
           if (grid[k - layer] && random() < Math.min(1, target - y + 1) * 0.28 * s.sedimentRate * timeScale) { grid[k] = soil; stats.deposited++; }
         }
       }
@@ -185,6 +188,7 @@ export function simulate(input, options = {}, onProgress = () => {}) {
       for (let z = 0; z < D; z++) for (let x = 0; x < W; x++) {
         const y = h[x + z * W]; if (y < 0 || y >= H - 1 || distance[x + z * W] > 5) continue;
         const k = key(x, y, z), m = grid[k];
+        if (mats[m].fluid) continue;
         const chance = s.growthRate * 0.075 * timeScale * (0.5 + step / s.steps) * (mats[m].ground || mats[m].loose ? 1 : 0.55);
         if (!grid[k + layer] && random() < chance) { const plant = mats[m].ground ? grass : moss; if (plant) { grid[k + layer] = plant; stats.grown++; } }
         if (y > initialGround[x + z * W] + 2 && random() < chance * 0.9) {
@@ -198,7 +202,7 @@ export function simulate(input, options = {}, onProgress = () => {}) {
         }
       }
       // Remove plants whose substrate has disappeared in an earlier pass.
-      for (let k = 0; k < grid.length; k++) if (grid[k] && mats[grid[k]].organic) {
+      for (let k = 0; k < grid.length; k++) if (grid[k] && mats[grid[k]].organic && !mats[grid[k]].fixed) {
         const [x, y, z] = xyz(k);
         let attached = y > 0 && grid[k - layer] && !mats[grid[k - layer]].organic;
         for (const [dx, dz] of dirs) if (inside(x + dx, y, z + dz)) { const m = grid[key(x + dx, y, z + dz)]; if (m && !mats[m].organic) attached = true; }
@@ -208,9 +212,9 @@ export function simulate(input, options = {}, onProgress = () => {}) {
     const set = [];
     for (let k = 0; k < grid.length; k++) {
       if (grid[k] !== before[k]) set.push([...xyz(k), grid[k]]);
-      if (grid[k] && !mats[grid[k]].ground && !mats[grid[k]].organic) stats.solid++;
+      if (grid[k] && !mats[grid[k]].ground && !mats[grid[k]].fixed && !mats[grid[k]].organic) stats.solid++;
     }
-    for (const k of original) if (grid[k] && !mats[grid[k]].ground && !mats[grid[k]].organic && !mats[grid[k]].loose) stats.originalRemaining++;
+    for (const k of original) if (grid[k] && !mats[grid[k]].ground && !mats[grid[k]].fixed && !mats[grid[k]].organic && !mats[grid[k]].loose) stats.originalRemaining++;
     frames.push({ t: step * s.stepYears, set, stats });
     onProgress(step / s.steps);
   }

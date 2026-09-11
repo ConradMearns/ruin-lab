@@ -18,7 +18,7 @@ export function parseStructure(input) {
     if (id !== '0' && (typeof m.color !== 'string' || !/^#[\da-f]{6}$/i.test(m.color))) throw new Error(`Material ${id} needs a six-digit hex color, e.g. #8a8a85.`);
     if (m.durability !== undefined && (!Number.isFinite(m.durability) || m.durability <= 0)) throw new Error(`Material ${id}: durability must be greater than zero.`);
     if (m.span !== undefined && (!integer(m.span) || m.span > 128)) throw new Error(`Material ${id}: span must be an integer from 0 to 128.`);
-    for (const flag of ['ground', 'loose', 'organic']) if (m[flag] !== undefined && typeof m[flag] !== 'boolean') throw new Error(`Material ${id}: ${flag} must be a boolean.`);
+    for (const flag of ['ground', 'loose', 'organic', 'fixed', 'fluid']) if (m[flag] !== undefined && typeof m[flag] !== 'boolean') throw new Error(`Material ${id}: ${flag} must be a boolean.`);
     normalized[id] = { ...m, ...(m.decays_to !== undefined ? { decays_to: String(m.decays_to) } : {}) };
   }
   for (const [id, m] of Object.entries(normalized)) {
@@ -34,7 +34,19 @@ export function parseStructure(input) {
     seen.add(key);
     if (v[3] !== 0) clean.push(v);
   }
-  return { version: 1, size: [...size], materials: normalized, voxels: clean };
+  let extraction;
+  if (input.extraction !== undefined) {
+    const meta = input.extraction;
+    if (meta?.format !== 'ruin-lab/vs-selection' || meta.version !== 1 || !Array.isArray(meta.origin) || meta.origin.length !== 3 || !meta.origin.every(n => Number.isSafeInteger(n) && n >= 0)) throw new Error('Invalid extraction metadata.');
+    if (!Array.isArray(meta.originalSelectedAir) || meta.originalSelectedAir.length > 1000000) throw new Error('Invalid original selected air.');
+    const airSeen = new Set();
+    for (const pos of meta.originalSelectedAir) {
+      if (!Array.isArray(pos) || pos.length !== 3 || pos.some((n, a) => !integer(n) || n >= size[a])) throw new Error('Selected air is outside the grid.');
+      const key = pos.join(','); if (airSeen.has(key)) throw new Error('Duplicate selected air.'); airSeen.add(key);
+    }
+    extraction = structuredClone(meta);
+  }
+  return { version: 1, size: [...size], materials: normalized, voxels: clean, ...(extraction ? { extraction } : {}) };
 }
 
 function validateVoxel(v, size, materials, label) {

@@ -1,7 +1,9 @@
 import './style.css';
+import './floor-controls.css';
 import { icon, hydrateIcons } from './icons.js';
 import { VoxelViewer } from './viewer.js';
 import { DEFAULTS } from './engine.js';
+import { openMaterialEditor } from './material-editor.js';
 import { parseStructure, parseTimelapse, replayFrame } from './schema.js';
 
 const $ = id => document.getElementById(id);
@@ -21,6 +23,7 @@ function toast(message, error = false) {
 function setBusy(value, label) {
   busy = value;
   $('simulate-button').disabled = value || !original;
+  $('materials-button').disabled = value || !original;
   $('export-button').disabled = value || !timelapse;
   $('export-structure').disabled = value || !original;
   $('play-button').disabled = value || !timelapse?.frames.length;
@@ -128,8 +131,19 @@ function renderLibrary() {
   $('library-count').textContent = String(manifest.length).padStart(2, '0');
   $('structure-list').querySelectorAll('button').forEach(button => button.addEventListener('click', () => loadExample(button.dataset.id)));
 }
+function updateFloorHeight() {
+  const height = Number($('floor-height').value);
+  $('floor-height-value').textContent = `Y = ${height}`;
+  $('floor-height').setAttribute('aria-valuetext', `${height} voxels above the model origin`);
+  updateRange($('floor-height'));
+  viewer?.setFloorHeight(height);
+}
 function updateSpecimen({ name, period = 'Imported structure · Custom', id = null }) {
   activeName = name; activeId = id;
+  $('floor-height').min = -Math.max(...original.size);
+  $('floor-height').max = original.size[1];
+  $('floor-height').value = 0;
+  updateFloorHeight();
   $('structure-name').textContent = name; $('structure-period').textContent = period;
   const index = manifest.findIndex(entry => entry.id === id);
   $('specimen-number').textContent = index >= 0 ? String(index + 1).padStart(2, '0') : '＋';
@@ -186,6 +200,14 @@ const fileName = () => activeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').repl
 function downloadJSON(data, filename) { download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), filename); }
 function selectViewButton(mode) { $('orbit-button').classList.toggle('active', mode === 'orbit'); $('top-button').classList.toggle('active', mode === 'top'); }
 
+$('materials-button').addEventListener('click', () => {
+  if (!original || busy) return;
+  stopPlayback();
+  openMaterialEditor(timelapse?.structure || original, updated => {
+    original = updated;
+    runSimulation();
+  });
+});
 $('simulate-button').addEventListener('click', () => runSimulation());
 $('play-button').addEventListener('click', play);
 $('timeline').addEventListener('input', () => { stopPlayback(); setFrame(Number($('timeline').value)); });
@@ -226,6 +248,8 @@ document.querySelectorAll('.close-dialog').forEach(button => button.addEventList
 document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } }));
 $('export-button').addEventListener('click', () => { if (!timelapse || busy) return; downloadJSON(timelapse, `${fileName()}-timelapse.json`); toast('Timelapse exported: original structure + incremental keyframes.'); });
 $('export-structure').addEventListener('click', () => { if (!timelapse || busy) return; const t = frame ? timelapse.frames[frame - 1].t : 0; downloadJSON({ ...timelapse.structure, voxels: currentVoxels }, `${fileName()}-year-${t}.json`); toast(`Year ${number(t)} exported as a standalone voxel structure.`); });
+$('floor-height').addEventListener('input', updateFloorHeight);
+$('floor-reset').addEventListener('click', () => { $('floor-height').value = 0; updateFloorHeight(); });
 $('grid-button').addEventListener('click', () => { const active = $('grid-button').classList.toggle('active'); $('grid-button').setAttribute('aria-pressed', active); viewer?.setGrid(active); });
 for (const mode of ['orbit', 'top']) $(`${mode}-button`).addEventListener('click', () => { viewer?.fit(mode); selectViewButton(mode); });
 $('fit-button').addEventListener('click', () => { viewer?.fit(); selectViewButton('orbit'); });

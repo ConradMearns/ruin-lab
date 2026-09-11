@@ -3,3 +3,17 @@ dist/
 test-results/
 playwright-report/
 .DS_Store
+
+# Private game saves, local extraction data, and proprietary game binaries
+local/
+*.vcdbs
+*.vcdbs-*
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+**/bin/
+**/obj/
+__pycache__/
+*.pyc
